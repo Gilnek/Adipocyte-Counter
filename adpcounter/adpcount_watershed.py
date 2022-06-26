@@ -8,7 +8,7 @@ import math
 from typing import Any, Tuple
 from pathlib import Path
 
-def adp_count(
+def adp_count_watershed(
         image_path: Path | str,
         return_image = True,
         img_gray: str | None = "gray.png",
@@ -46,7 +46,27 @@ def adp_count(
     if img_thresh is not None:
         cv.imwrite(img_thresh, thresh)
 
+    #### Watershed starts here
+    ## remoção de ruido
+    ws_kernel = np.ones((3,3),np.uint8)
+    ws_opening = cv.morphologyEx(
+        thresh, cv.MORPH_OPEN,
+        ws_kernel,
+        iterations=1
+    )
+    cv.imwrite("wsnr.png",ws_opening)
+    ## sure bg
+    ws_sure = cv.dilate(ws_opening, ws_kernel, iterations=0)
+    cv.imwrite("ws_surebg.png", ws_sure)
+    ## sure fg
+    ws_dist_transform = cv.distanceTransform(ws_opening, cv.DIST_L2, 0)
+    cv.imwrite("ws_dist.png", ws_dist_transform)
+    # valores tirados do alem, for now
+    ret, ws_surebg = cv.threshold(ws_dist_transform, 0.7 * ws_dist_transform.max(), 255, 0)
+    cv.imwrite("ret.png", ws_surebg)
+    ##
 
+    # and ends here
 
     #engrossa a imagem
     kernel = np.ones((2,2),np.uint8)
