@@ -47,3 +47,18 @@ resultado = adp_count(image_path)
 print(resultado[0])
 
 cv.imwrite("resultado.png",resultado[1])
+
+
+#print('Insira o nome da imagem desejada: ')
+#input(image_name)
+#image_name = args.img
+
+
+image_path = "teste.jpg"
+#image = cv.imread(str(image_path.resolve()))
+#original = image.copy()  #cria uma cópia da original para comparação e se torna a original
+
+resultado = adp_count(image_path)
+print(resultado[0])
+
+cv.imwrite("resultado.png",resultado[1])
