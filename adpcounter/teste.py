@@ -3,52 +3,55 @@
 import cv2 as cv
 import numpy as np
 import math
-from typing import Any, Tuple
-from pathlib import Path
 
-def adp_count(image_path: Path | str, return_image = True) -> Tuple[int,Any|None]:
-    original = cv.imread(image_path)
-    image = original.copy()
+image = cv.imread("teste.jpg")
+original = image.copy()
+#transformação da imagem para escala de cinza
+gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+cv.imwrite("gray.jpg", gray)
 
-    #transformação da imagem para escala de cinza
-    gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-    cv.imshow(gray)
+#binarização da imagem
+thresh =  cv.adaptiveThreshold(gray,255,cv.ADAPTIVE_THRESH_MEAN_C,\
+            cv.THRESH_BINARY,11,2)
+cv.imwrite("thresh.jpg", thresh)
 
-    #binarização da imagem
-    thresh =  cv.threshold(gray, 0, 255,
-        cv.THRESH_BINARY_INV | cv.THRESH_OTSU
-    )[1]
+#engrossa a imagem
+kernel = np.ones((2,2),np.uint8)
+dilation = cv.dilate(thresh,kernel,iterations = 1)
+cv.imwrite("dilation.jpg", dilation)
 
-    #engrossa a imagem
-    kernel = np.ones((2,2),np.uint8)
-    dilation = cv.dilate(thresh,kernel,iterations = 1)
+#afina a imagem
+erosion = cv.erode(dilation,kernel,iterations = 2)
+cv.imwrite("erosion.jpg", erosion)
 
-    #afina a imagem
-    erosion = cv.erode(dilation,kernel,iterations = 2)
 
-    mask = erosion
-    #cv.imwrite("mask.png", mask)
+mask = erosion
+cv.imwrite("mask.jpg", mask)
 
-    kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
-    opening = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel, iterations=1)
-    close = cv.morphologyEx(opening, cv.MORPH_CLOSE, kernel, iterations=2)
+kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
+opening = cv.morphologyEx(mask, cv.MORPH_OPEN, kernel, iterations=2)
+close = cv.morphologyEx(opening, cv.MORPH_CLOSE, kernel, iterations=2)
+cv.imwrite("close.jpg", close)
 
-    cnts = cv.findContours(close, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+cnts = cv.findContours(close, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
-    area_min = 60  #60
-    area_med = 550 #550
-    area_conexao = 1000 #500
-    adipocitos = 0
 
-    #faz os contornos
-    for c in cnts:
-        area = cv.contourArea(c)
-        if area > area_min:
-            cv.drawContours(image, [c], -1, (36,255,12), 2)
-            if area > area_conexao:
-                adipocitos += math.ceil(area / area_med)
-            else:
-                adipocitos += 1
 
-    return adipocitos, image if return_image else None
+area_min = 1  #60
+area_med = 5000 #550
+area_conexao = 1000 #500
+adipocitos = 0
+
+#faz os contornos
+for c in cnts:
+    area = cv.contourArea(c)
+    if area > area_min:
+        cv.drawContours(original, [c], -1, (36,255,12), 2)
+        if area > area_conexao:
+            adipocitos += math.ceil(area / area_med)
+        else:
+            adipocitos += 1
+print('Numero de Adipócitos: {}'.format(adipocitos))
+
+cv.imwrite("original.png", original)
