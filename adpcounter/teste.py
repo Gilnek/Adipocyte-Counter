@@ -4,28 +4,52 @@ import cv2 as cv
 import numpy as np
 import math
 
-image = cv.imread("test.jpg")
+#leitura da imagem
+image = cv.imread("teste1.jpg") 
 original = image.copy()
 #transformação da imagem para escala de cinza
 gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 cv.imwrite("gray.jpg", gray)
 
+#geracao do elemento estruturante para aplicacao do filtro
 kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
+#aplicacao da erosao antes da binarizacao
 erosion = cv.erode(gray, kernel,iterations = 1)
 cv.imwrite("erosion1.jpg", gray)
 
+#aplicacao da dilatacao antes da binarizacao
 dilation = cv.dilate(gray,kernel,iterations = 1)
 cv.imwrite("dilation1.jpg", dilation)
 
-new = erosion - dilation
+#aqui faz a comparaçao entre elas
+
+#feita a operacao de uma erosao-dilatacao 
+new = (erosion - dilation)*4
+#new = cv.bilateralFilter(new,9,75,75)
+#feita a operacao de uma dilatacao-erosao
 new2 = (dilation - erosion)*4
 
-ksize = 5,5
-newimage = cv.blur(new2, ksize)
-cv.imwrite("blur.jpg", newimage)
+# new  = erosion-dilation
+# new2 = dilation-erosion
+# new3 = operacao da transladacao do new2
+# new4 = operacao da transladacao do new
+# new5 = echo 
+
+
 
 cv.imwrite("new.jpg", new)
 cv.imwrite("new2.jpg", new2)
+
+# Store height and width of the image
+height, width = new.shape[:2]
+
+T = np.float32([[1, 0, 1], [0, 1, 1]])
+new_translation = cv.warpAffine(new, T, (width, height))
+#cv.imshow("Originalimage", new2)
+#cv.imshow('Translation', new2_translation)
+
+new4 = (new_translation + new)*2
+cv.imwrite("new4.jpg", new4)
 
 # Store height and width of the image
 height, width = new2.shape[:2]
@@ -35,15 +59,37 @@ new2_translation = cv.warpAffine(new2, T, (width, height))
 #cv.imshow("Originalimage", new2)
 #cv.imshow('Translation', new2_translation)
 
-new3 = new2_translation + new2
-cv.imshow("New3", new3)
+new3 = (new2_translation + new2)*2
+cv.imwrite("new3.jpg", new3)
+
+ksize = 5,5
+dilero = cv.blur(new3, ksize)*2
+cv.imwrite("dileroblur.jpg", dilero)
+
+ksize = 5,5
+erodil = cv.blur(new4, ksize)*2
+cv.imwrite("erodilblur.jpg", erodil)
+
+medianerodil = cv.bilateralFilter(new3, 9, 75, 75)
+cv.imshow("medianerodil", medianerodil)
+medianadilero = cv.bilateralFilter(new4, 9, 75, 75)
+cv.imshow("medianadilero", medianadilero)
 
 cv.waitKey()
   
 cv.destroyAllWindows()
 
+
+#laplacianerodil = cv.Laplacian(erodil,cv.CV_64F)
+#cv.imshow("laplacianerodil", laplacianerodil)
+
+#laplaciandilero = cv.Laplacian(dilero,cv.CV_64F)
+#cv.imshow("laplaciandilero", laplaciandilero)
+
+
+
 #binarização da imagem
-thresh =  cv.adaptiveThreshold(new3,255,cv.ADAPTIVE_THRESH_MEAN_C,\
+thresh =  cv.adaptiveThreshold(erodil,255,cv.ADAPTIVE_THRESH_MEAN_C,\
             cv.THRESH_BINARY,11,2)
 cv.imwrite("thresh.jpg", thresh)
 
