@@ -7,9 +7,10 @@ import matplotlib
 import matplotlib.pyplot as plt
 from skimage import data, img_as_float
 from skimage import exposure
+from skimage import morphology
 
 #leitura da imagem
-image = cv.imread("test1.jpg") 
+image = cv.imread("2.jpg") 
 original = image.copy()
 #transformação da imagem para escala de cinza
 gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -31,7 +32,7 @@ canny = cv.Canny(blur, 0, 50)
 cv.imwrite("canny.jpg", canny)
 
 
-kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (5,5))
+kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
 dilation = cv.dilate(canny,kernel,iterations = 1)
 cv.imwrite("dilationcanny.jpg", dilation)
 
@@ -44,6 +45,27 @@ kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
 
 erosion = cv.erode(thresh, kernel,iterations = 1)
 cv.imwrite("erosionteste5.jpg", erosion)
+
+invert = cv.bitwise_not(erosion)
+
+
+# Filter using contour area and remove small noise
+cnts = cv.findContours(invert, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+for c in cnts:
+    area = cv.contourArea(c)
+    if area < 5500:
+        cv.drawContours(invert, [c], -1, (0,0,0), -1)
+
+# Morph close and invert image
+kernel = cv.getStructuringElement(cv.MORPH_RECT, (5,5))
+close = 255 - cv.morphologyEx(invert, cv.MORPH_CLOSE, kernel, iterations=2)
+
+cv.imwrite('limpoinvert.jpg', invert)
+cv.imwrite('limpoclose.jpg', close)
+
+#remove = morphology.remove_small_objects(invert, 20)
+#cv.imwrite("remove.jpg", remove)
 
 p2, p98 = np.percentile(denoise, (2, 98))
 img_rescale = exposure.rescale_intensity(denoise, in_range=(p2, p98))
