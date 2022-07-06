@@ -10,7 +10,7 @@ from skimage import exposure
 from skimage import morphology
 
 #leitura da imagem
-image = cv.imread("2.jpg") 
+image = cv.imread("test1.jpg") 
 original = image.copy()
 #transformação da imagem para escala de cinza
 gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -64,21 +64,46 @@ close = 255 - cv.morphologyEx(invert, cv.MORPH_CLOSE, kernel, iterations=2)
 cv.imwrite('limpoinvert.jpg', invert)
 cv.imwrite('limpoclose.jpg', close)
 
+pad = cv.copyMakeBorder(close, 1,1,1,1, cv.BORDER_CONSTANT, value=255)
+h, w = pad.shape
+
+mascara = np.zeros([h + 2, w + 2], np.uint8)
+
+# floodfill outer white border with black
+img_floodfill = cv.floodFill(pad, mascara, (0,0), 0, (5), (0), flags=8)[1]
+
+# remove border
+img_floodfill = img_floodfill[1:h-1, 1:w-1]
+
+# save cropped image
+cv.imwrite('floodfilled.jpg',img_floodfill)
+
+(cnt, hierarchy) = cv.findContours(
+    img_floodfill.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+cv.drawContours(rgb, cnt, -1, (0, 255, 0), 2)
+ 
+ 
+print("coins in the image : ", len(cnt))
+cv.imwrite("contorno.jpg", rgb)
+
+     
+
 #remove = morphology.remove_small_objects(invert, 20)
 #cv.imwrite("remove.jpg", remove)
 
-p2, p98 = np.percentile(denoise, (2, 98))
-img_rescale = exposure.rescale_intensity(denoise, in_range=(p2, p98))
+#p2, p98 = np.percentile(denoise, (2, 98))
+#img_rescale = exposure.rescale_intensity(denoise, in_range=(p2, p98))
 
-blur2 = cv.GaussianBlur(img_rescale, (11,11), 0)
+#blur2 = cv.GaussianBlur(img_rescale, (11,11), 0)
 
-canny2 = cv.Canny(blur2, 0, 50)
-cv.imwrite("canny2.jpg", canny)
+#canny2 = cv.Canny(blur2, 0, 50)
+#cv.imwrite("canny2.jpg", canny)
 
 #binarização da imagem
-threshdenoise =  cv.adaptiveThreshold(canny2,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
-            cv.THRESH_BINARY,11,2)
-cv.imwrite("threshdenoiseteste3.jpg", threshdenoise)
+#threshdenoise =  cv.adaptiveThreshold(canny2,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
+#           cv.THRESH_BINARY,11,2)
+#cv.imwrite("threshdenoiseteste3.jpg", threshdenoise)
 
 
 
