@@ -6,19 +6,45 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>800</height>
+    <width>1200</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="ImagemOriginal">
+   <widget class="QPushButton" name="Automatic">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>20</y>
+      <y>820</y>
+      <width>75</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Automatic</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="Assisted">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>820</y>
+      <width>75</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Assisted</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>30</y>
       <width>1020</width>
       <height>768</height>
      </rect>
@@ -27,13 +53,26 @@
      <string>Imagem Original</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="Teste">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>820</y>
+      <width>75</width>
+      <height>24</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TESTE</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1100</width>
+     <width>1200</width>
      <height>22</height>
     </rect>
    </property>
@@ -50,22 +89,11 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuProcessing">
-    <property name="title">
-     <string>Processing</string>
-    </property>
-    <addaction name="actionAutomatic_Counting"/>
-    <addaction name="actionAssisted_Counting"/>
-   </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuProcessing"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionFile">
-   <property name="checkable">
-    <bool>false</bool>
-   </property>
    <property name="text">
     <string>Read New File</string>
    </property>

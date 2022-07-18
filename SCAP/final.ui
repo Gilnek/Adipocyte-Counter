@@ -6,24 +6,73 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
-    <height>610</height>
+    <width>1200</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget class="QLabel" name="label">
+  <widget class="QLabel" name="Imagem_Final">
    <property name="geometry">
     <rect>
-     <x>370</x>
-     <y>290</y>
-     <width>49</width>
-     <height>16</height>
+     <x>90</x>
+     <y>30</y>
+     <width>1020</width>
+     <height>768</height>
     </rect>
    </property>
    <property name="text">
     <string>Final</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="Save">
+   <property name="geometry">
+    <rect>
+     <x>950</x>
+     <y>860</y>
+     <width>75</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="Cancel">
+   <property name="geometry">
+    <rect>
+     <x>1100</x>
+     <y>860</y>
+     <width>75</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cancel</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="Num_Adp_wr">
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>860</y>
+     <width>113</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="Num_Adp">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>860</y>
+     <width>121</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Number of Adipocytes</string>
    </property>
   </widget>
  </widget>
