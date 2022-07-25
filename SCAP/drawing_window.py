@@ -7,23 +7,25 @@ import sys
 from PySide6.QtCore import Qt, QPoint, Slot
 from PySide6.QtWidgets import QMainWindow, QApplication, QWidget
 from PySide6.QtGui import QPainter, QPixmap, QPen, QKeySequence, QShortcut
-
 from PySide6 import QtCore
+import PySide6
 
-class Menu(QWidget):
+class Paint(QWidget):
 
     image: QPixmap
     OG_shape: tuple[int,int]
 
     def __init__(self):
         super().__init__()
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.destroyed.connect(self.save)
 
         self.save_shortcut = QShortcut(QKeySequence("Ctrl+S"),self)
         self.save_shortcut.activated.connect(self.save)
 
         self.drawing = False
         self.lastPoint = QPoint()
-        self.image = QPixmap("limpoclose.jpg")
+        self.image = QPixmap("tempclose.png")
         self.OG_shape = (
             self.image.width(),
             self.image.height()
@@ -70,13 +72,18 @@ class Menu(QWidget):
         if event.button == Qt.RightButton:
             self.drawing = False    
 
-    @Slot()
+    def closeEvent(self, event: PySide6.QtGui.QCloseEvent) -> None:
+        self.save()
+        return super().closeEvent(event)
+
+    #@Slot()
     def save(self):
-        self.image.scaled(*self.OG_shape).save("temp.png","png")
+        print('save was called')
+        self.image.scaled(*self.OG_shape).save("processed.png","png")
         
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    mainMenu = Menu()
+    mainMenu = Paint()
     sys.exit(app.exec())
 

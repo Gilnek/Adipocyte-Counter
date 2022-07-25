@@ -55,6 +55,7 @@ def closing(invert):
     # Morph close and invert image
     kernel = cv.getStructuringElement(cv.MORPH_RECT, (5,5))
     close = 255 - cv.morphologyEx(invert, cv.MORPH_CLOSE, kernel, iterations=2)
+    cv.imwrite("tempclose.png", close)
 
     return close
 
@@ -83,6 +84,15 @@ def flood_fill(close, image):
 
     
     return img_floodfill, rgb
+
+def processed_image():
+    close= imread("processed.png")
+    close = cv.cvtColor(close, cv.COLOR_BGR2GRAY)
+    close = cv.adaptiveThreshold(close,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
+               cv.THRESH_BINARY,11,2)
+
+    return close
+
  
 def dist_transform_plus_thresh(thresh_proportion: int = 0.130 ,write: bool = False):
     floodfilled = cv.imread("floodfilled.jpg")
@@ -97,7 +107,7 @@ def dist_transform_plus_thresh(thresh_proportion: int = 0.130 ,write: bool = Fal
 
     return ff_dist, ff_bin
 
-def count_it(ff_dist, ff_bin, processed_image):
+def count_it(ff_dist, ff_bin, processed_image, contorno: str = "contorno.png", final: str = "final.png"):
 
     ff_dist, ff_bin = dist_transform_plus_thresh(0.130, False)
 
@@ -142,17 +152,17 @@ def count_it(ff_dist, ff_bin, processed_image):
                     c = c+1
             i = i + 1
 
-        cv.imwrite("contorno.jpg", rgb)    
-        cv.imwrite("final.jpg",image_f)
+        cv.imwrite(contorno, rgb)    
+        cv.imwrite(final,image_f)
     return len(cnt)
 
 def cv2pix(image):
-    imwrite(".temp.png", image)
+    imwrite("temp.png", image)
     converted = QPixmap()
-    converted.load(".temp.png")
+    converted.load("temp.png")
     return converted
 
 def pix2cv(image:QPixmap):
-    image.save(".temp.png")
-    converted = imread(".temp.png")
+    image.save("temp.png")
+    converted = imread("temp.png")
     return converted

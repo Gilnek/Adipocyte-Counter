@@ -3,12 +3,12 @@ import sys
 from typing import Any
 
 from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog, QWidget
-from PySide6.QtCore import Slot, QSize, QEventLoop, QPoint, Qt
+from PySide6.QtCore import Slot, QSize, QEventLoop, QPoint, Qt, QDir
 from PySide6.QtGui import QAction, QPixmap, QKeySequence, QShortcut, QPainter, QPen
 
 
 import PySide6.QtCore as QtCore
-from cv2 import threshold
+from cv2 import threshold, imread
 
 from Ui_MainWindow import Ui_MainWindow
 from final_form import Ui_Dialog as Ui_final_form
@@ -16,7 +16,7 @@ from assisted_form import Ui_Dialog as Ui_assisted_form
 from drawing_form import DrawingDialog
 #from panel_form import Ui_Form as Ui_panel_form
 import processing_definitions
-
+from drawing_window import Paint
 
 #class PanelForm(QWidget):
 #    def __init__(self):
@@ -147,17 +147,13 @@ class MainWindow(QMainWindow):
         self.ui.label.setPixmap(self.pix)
         # sub janelas
         self.assisted_form = DrawingForm()
+        #flags
+        self.folder_mode = False
+        self.folder_queue = []
 
     def run_action_file(self):
         print("run_action_file")
-        # selector = QFileDialog(
-        #     parent=None,
-        #     caption="Selecione a imagem desejada",
-        #     directory='.',
-        #     filter="*.png; *.jpg; *.jpeg; *.bpm"
-        # )
-        # selector.setFileMode(QFileDialog.ExistingFile)
-        # selector.
+        self.folder_mode = False
         fileName, used_filter = QFileDialog.getOpenFileName(self,
             caption="Selecione uma imagem",
             dir=".",
@@ -172,13 +168,27 @@ class MainWindow(QMainWindow):
     
     def run_action_folder(self):
         print("run_action_folder")
+        self.folder_mode = True
         path = QFileDialog.getExistingDirectory(
             caption="Selecione uma pasta contendo as imagens",
-            dir='.'
-        )
+            dir=".",
+            options=QFileDialog.Option.DontUseNativeDialog)
         print(path)
+        mydir = QDir(path)
+        arq_path = mydir.entryList(['*.png', '*.jpg', '*.bmp'])
+        print(arq_path)     
+
         if path:
             self.ui.Automatic.setEnabled(True)
+
+        self.folder_queue = [f'{path}/{x}' for x in arq_path]
+
+        #for x in arq_path:
+        #self.pix.load(arq_path)
+        #self.pix_scaled = self.pix.scaled(QSize(*self.img_shape), QtCore.Qt.KeepAspectRatio)
+        #self.ui.label.setPixmap(self.pix_scaled)
+               
+        
 
     def run_assisted(self):
         print('run_assisted')
@@ -193,35 +203,73 @@ class MainWindow(QMainWindow):
         rso_image = processing_definitions.remove_small_objects(erode_image)
         close_image = processing_definitions.closing(rso_image)
         #aqui diferente da automatica vai fazer a chamada para a tela de pintar
-        self.assisted_form.set_pixmap(
-            processing_definitions.cv2pix(close_image)
-        )
-        self.call_assisted_window()
+
+        paintwindow = Paint()
+        # Cria um loop para segurar a execução
+        loop = QEventLoop()
+        # Conecta destruição do widget com saida do loop
+        paintwindow.destroyed.connect(loop.quit)
+        # Executa loop para segurar a execução
+        loop.exec()
+        print("teste")
         
-        floodfill_image, processed_image = processing_definitions.flood_fill(close_image, cv_image)
+        painted_image = processing_definitions.processed_image()
+        floodfill_image, processed_image = processing_definitions.flood_fill(painted_image, cv_image)
         ff_dist_image, ff_bin_image= processing_definitions.dist_transform_plus_thresh()
         adipocyte_number = processing_definitions.count_it(ff_dist_image, ff_bin_image, processed_image)
         final_image = processing_definitions.cv2pix(processed_image)
+        print("adipocitos: ", adipocyte_number)
         #self.clean_up()
 
     def run_automatic(self):
         print('run_auto')
-        pix_image = self.pix
-        cv_image = processing_definitions.pix2cv(pix_image)
-        gray_image = processing_definitions.gray_scale_transformation(cv_image)
-        contrast_stretching_image = processing_definitions.contrast_stretching(gray_image)
-        blur_image = processing_definitions.blur(contrast_stretching_image)
-        canny_edge_image = processing_definitions.canny_edge(blur_image)
-        gauss_thresh_image = processing_definitions.gaussian_threshold(canny_edge_image)
-        erode_image = processing_definitions.erode(gauss_thresh_image)
-        rso_image = processing_definitions.remove_small_objects(erode_image)
-        close_image = processing_definitions.closing(rso_image)
-        floodfill_image, processed_image = processing_definitions.flood_fill(close_image, cv_image)
-        ff_dist_image, ff_bin_image= processing_definitions.dist_transform_plus_thresh()
-        adipocyte_number = processing_definitions.count_it(ff_dist_image, ff_bin_image, processed_image)
-        final_image = processing_definitions.cv2pix(processed_image)
-        print("adipocitos aqui: ", adipocyte_number)
-        #self.clean_up()
+        if self.folder_mode:
+            for image_path in self.folder_queue:
+                print(image_path)
+                x = image_path.split(".", 1)
+                print(x)
+                cv_image = imread(image_path)
+                gray_image = processing_definitions.gray_scale_transformation(cv_image)
+                contrast_stretching_image = processing_definitions.contrast_stretching(gray_image)
+                blur_image = processing_definitions.blur(contrast_stretching_image)
+                canny_edge_image = processing_definitions.canny_edge(blur_image)
+                gauss_thresh_image = processing_definitions.gaussian_threshold(canny_edge_image)
+                erode_image = processing_definitions.erode(gauss_thresh_image)
+                rso_image = processing_definitions.remove_small_objects(erode_image)
+                close_image = processing_definitions.closing(rso_image)
+                floodfill_image, processed_image = processing_definitions.flood_fill(close_image, cv_image)
+                ff_dist_image, ff_bin_image= processing_definitions.dist_transform_plus_thresh()
+                adipocyte_number = processing_definitions.count_it(
+                    ff_dist_image, 
+                    ff_bin_image, 
+                    processed_image, 
+                    contorno = '{}_contorno.png'.format(x[0]),
+                    final = '{}_final.png'.format(x[0])
+                )
+                final_image = processing_definitions.cv2pix(processed_image)
+                print(f"adipocitos {image_path}: ", adipocyte_number)
+                #x = x + 1
+                #y = y + 1
+                #self.clean_up()
+
+        else:
+            pix_image = self.pix
+            cv_image = processing_definitions.pix2cv(pix_image)
+            gray_image = processing_definitions.gray_scale_transformation(cv_image)
+            contrast_stretching_image = processing_definitions.contrast_stretching(gray_image)
+            blur_image = processing_definitions.blur(contrast_stretching_image)
+            canny_edge_image = processing_definitions.canny_edge(blur_image)
+            gauss_thresh_image = processing_definitions.gaussian_threshold(canny_edge_image)
+            erode_image = processing_definitions.erode(gauss_thresh_image)
+            rso_image = processing_definitions.remove_small_objects(erode_image)
+            close_image = processing_definitions.closing(rso_image)
+            floodfill_image, processed_image = processing_definitions.flood_fill(close_image, cv_image)
+            ff_dist_image, ff_bin_image= processing_definitions.dist_transform_plus_thresh()
+            adipocyte_number = processing_definitions.count_it(ff_dist_image, ff_bin_image, processed_image)
+            final_image = processing_definitions.cv2pix(processed_image)
+            print("adipocitos aqui: ", adipocyte_number)
+            #self.clean_up()
+        
 
     def clean_up(self):
         self.ui.Assisted.setDisabled(True)
