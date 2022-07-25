@@ -32,14 +32,11 @@ canny = cv.Canny(blur, 0, 50)
 cv.imwrite("canny.jpg", canny)
 
 
-kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
-dilation = cv.dilate(canny,kernel,iterations = 1)
-cv.imwrite("dilationcanny.jpg", dilation)
 
 #binarização da imagem
 thresh =  cv.adaptiveThreshold(canny,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
             cv.THRESH_BINARY,11,2)
-cv.imwrite("threshteste3.jpg", thresh)
+cv.imwrite("threshteste10.jpg", thresh)
 
 kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3,3))
 
@@ -47,7 +44,7 @@ erosion = cv.erode(thresh, kernel,iterations = 1)
 cv.imwrite("erosionteste5.jpg", erosion)
 
 invert = cv.bitwise_not(erosion)
-
+cv.imwrite("inverted.jpg",invert)
 
 # Filter using contour area and remove small noise
 cnts = cv.findContours(invert, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
@@ -63,6 +60,11 @@ close = 255 - cv.morphologyEx(invert, cv.MORPH_CLOSE, kernel, iterations=2)
 
 cv.imwrite('limpoinvert.jpg', invert)
 cv.imwrite('limpoclose.jpg', close)
+
+#close = cv.imread("temp.png")
+#close = cv.cvtColor(close, cv.COLOR_BGR2GRAY)
+#close = cv.adaptiveThreshold(close,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,\
+#           cv.THRESH_BINARY,11,2)
 
 pad = cv.copyMakeBorder(close, 1,1,1,1, cv.BORDER_CONSTANT, value=255)
 h, w = pad.shape
@@ -82,10 +84,28 @@ cv.imwrite('floodfilled.jpg',img_floodfill)
     img_floodfill.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
 rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 cv.drawContours(rgb, cnt, -1, (0, 255, 0), 2)
- 
+
+num_area = 0
+
+  # Get the moments
+mu = [None for i in cnt]
+for i in range(len(cnt)):
+    mu[i] = cv.moments(cnt[i])
+# Get the mass centers
+mc = [None for i in cnt]
+for i in range(len(cnt)):
+    mc[i] = (mu[i]['m10'] / (mu[i]['m00'] + 1e-5), mu[i]['m01'] / (mu[i]['m00'] + 1e-5))
+# Draw contours
+#drawing = np.zeros((src_thresh.shape[0], src_thresh.shape[1], 3), dtype=np.uint8)
+for i, j in enumerate(cnt):
+    #colour = cnt[i]['bgr']
+    #cv.drawContours(drawing, contours, i, colour, 2)
+    area = int(cv.contourArea(cnt[i]))
+    length = int(cv.arcLength(cnt[i], True))
+    print('Contour[{0}] Area: {1}, Length: {2}'.format(i, area, length))
  
 print("coins in the image : ", len(cnt))
-cv.imwrite("contorno.jpg", rgb)
+cv.imwrite("contorno_celula.jpg", rgb)
 
      
 

@@ -25,8 +25,8 @@ def adp_count_watershed(
     #print(type(gray))
 
     #engrossa a imagem
-    kernel = np.ones((3,3),np.uint8)
-    dilation = cv.dilate(gray,kernel,iterations = 5)
+    kernel = np.ones((2,2),np.uint8)
+    dilation = cv.dilate(gray,kernel,iterations = 1)
     cv.imwrite("dilation.jpg", dilation)
 
     #binarização da imagem
