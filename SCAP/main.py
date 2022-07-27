@@ -211,7 +211,6 @@ class MainWindow(QMainWindow):
         paintwindow.destroyed.connect(loop.quit)
         # Executa loop para segurar a execução
         loop.exec()
-        print("teste")
         
         painted_image = processing_definitions.processed_image()
         floodfill_image, processed_image = processing_definitions.flood_fill(painted_image, cv_image)
@@ -247,7 +246,7 @@ class MainWindow(QMainWindow):
                     final = '{}_final.png'.format(x[0])
                 )
                 final_image = processing_definitions.cv2pix(processed_image)
-                print(f"adipocitos {image_path}: ", adipocyte_number)
+                print(f"adipocitos da {image_path}: ", adipocyte_number)
                 #x = x + 1
                 #y = y + 1
                 #self.clean_up()

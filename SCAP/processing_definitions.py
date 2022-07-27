@@ -79,6 +79,25 @@ def flood_fill(close, image):
     rgb = cv.cvtColor(image, cv.COLOR_BGR2RGB)
     cv.drawContours(rgb, cnt, -1, (0, 255, 0), 2)
 
+    num_area = 0
+
+    # Get the moments
+    mu = [None for i in cnt]
+    for i in range(len(cnt)):
+        mu[i] = cv.moments(cnt[i])
+    # Get the mass centers
+    mc = [None for i in cnt]
+    for i in range(len(cnt)):
+        mc[i] = (mu[i]['m10'] / (mu[i]['m00'] + 1e-5), mu[i]['m01'] / (mu[i]['m00'] + 1e-5))
+    # Draw contours
+    #drawing = np.zeros((src_thresh.shape[0], src_thresh.shape[1], 3), dtype=np.uint8)
+    area = 0
+    for i, j in enumerate(cnt):
+        #colour = cnt[i]['bgr']
+        #cv.drawContours(drawing, contours, i, colour, 2)
+        area = area + int(cv.contourArea(cnt[i]))
+    
+    print('Area: {0} pixels'.format(area)) 
  
     cv.imwrite("contorno_celula.jpg", rgb)
 
@@ -94,7 +113,7 @@ def processed_image():
     return close
 
  
-def dist_transform_plus_thresh(thresh_proportion: int = 0.130 ,write: bool = False):
+def dist_transform_plus_thresh(thresh_proportion: int = 0.110 ,write: bool = False):
     floodfilled = cv.imread("floodfilled.jpg")
     
     ff_gray = cv.cvtColor(floodfilled, cv.COLOR_BGR2GRAY)
@@ -129,6 +148,8 @@ def count_it(ff_dist, ff_bin, processed_image, contorno: str = "contorno.png", f
   
         # draws boundary of contours.
         cv.drawContours(rgb, cnt, -1, (0, 255, 0), 2) 
+
+        
   
         # Used to flatted the array containing
         # the co-ordinates of the vertices.
